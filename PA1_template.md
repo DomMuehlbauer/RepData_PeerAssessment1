@@ -4,9 +4,7 @@ output:
   html_document:
     keep_md: true
 ---
-````{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-````
+
 
 ## Loading and preprocessing the data
 
@@ -14,11 +12,12 @@ knitr::opts_chunk$set(echo = TRUE)
 2. Load the csv in a data frame
 3. Omit NAs
 
-````{r}
+
+``` r
 unzip("activity.zip")
 data <- read.csv("activity.csv")
 data_no_na <- na.omit(data)
-````
+```
 
 ## What is mean total number of steps taken per day?
 
@@ -26,7 +25,8 @@ data_no_na <- na.omit(data)
 2. Plot histogram
 3. Calculate and print mean and median
 
-`````{r}
+
+``` r
 # Calculate total number of steps per day
 total_steps_per_day <- aggregate(steps ~ date, data = data_no_na, sum)
 
@@ -39,14 +39,29 @@ hist(
   col = "lightblue",
   border = "black"
 )
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+``` r
 # Calculate and print mean and median
 mean_steps <- mean(total_steps_per_day$steps)
 median_steps <- median(total_steps_per_day$steps)
 
 cat("Mean total steps per day:", mean_steps, "\n")
+```
+
+```
+## Mean total steps per day: 10766.19
+```
+
+``` r
 cat("Median total steps per day:", median_steps, "\n")
-`````
+```
+
+```
+## Median total steps per day: 10765
+```
 
 ## What is the average daily activity pattern?
 
@@ -54,7 +69,8 @@ cat("Median total steps per day:", median_steps, "\n")
 2. Time series plot
 3. Find interval with max average steps
 
-````{r}
+
+``` r
 # Calculate average steps per interval
 avg_steps_per_interval <- aggregate(steps ~ interval, data = data_no_na, mean)
 
@@ -64,12 +80,27 @@ plot(avg_steps_per_interval$interval, avg_steps_per_interval$steps,
      main = "Average Daily Activity Pattern",
      xlab = "5-minute Interval",
      ylab = "Average Number of Steps")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+``` r
 # Find interval with max average steps
 max_interval <- avg_steps_per_interval[which.max(avg_steps_per_interval$steps), ]
 cat("Interval with max average steps:", max_interval$interval, "\n")
+```
+
+```
+## Interval with max average steps: 835
+```
+
+``` r
 cat("Maximum average steps:", max_interval$steps, "\n")
-````
+```
+
+```
+## Maximum average steps: 206.1698
+```
 
 ## Imputing missing values
 
@@ -80,17 +111,33 @@ cat("Maximum average steps:", max_interval$steps, "\n")
 5. Plot histogram
 6. Calculate and print mean and median
 
-````{r}
+
+``` r
 # Count total NAs
 total_na <- sum(is.na(data$steps))
 cat("Total missing values:", total_na, "\n")
+```
 
+```
+## Total missing values: 2304
+```
+
+``` r
 # Strategy: fill NAs with the mean for that 5-minute interval
 interval_means <- aggregate(steps ~ interval, data = data, FUN = mean, na.rm = TRUE)
 
 # Merge to get mean steps for each interval
 data_imputed <- merge(data, interval_means, by = "interval", suffixes = c("", "_mean"))
 data_imputed$steps[is.na(data_imputed$steps)] <- data_imputed$steps_mean
+```
+
+```
+## Warning in data_imputed$steps[is.na(data_imputed$steps)] <-
+## data_imputed$steps_mean: number of items to replace is not a multiple of
+## replacement length
+```
+
+``` r
 data_imputed$steps_mean <- NULL  # Drop helper column
 
 # Calculate total steps per day
@@ -100,14 +147,29 @@ total_steps_per_day_imp <- aggregate(steps ~ date, data = data_imputed, sum)
 hist(total_steps_per_day_imp$steps, breaks = 20,
      main = "Histogram of Total Steps Per Day (Imputed)",
      xlab = "Total Steps per Day", col = "lightgreen", border = "black")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)<!-- -->
+
+``` r
 # Calculate and print mean and median
 mean_steps_imp <- mean(total_steps_per_day_imp$steps)
 median_steps_imp <- median(total_steps_per_day_imp$steps)
 
 cat("Mean (imputed):", mean_steps_imp, "\n")
+```
+
+```
+## Mean (imputed): 9371.437
+```
+
+``` r
 cat("Median (imputed):", median_steps_imp, "\n")
-````
+```
+
+```
+## Median (imputed): 10395
+```
 
 The mean and median differ from the original estimate. While the imputed median is relatively close to the original value, the imputed mean differs significantly.
 
@@ -117,7 +179,8 @@ The mean and median differ from the original estimate. While the imputed median 
 2. Calculate average steps per interval by day type
 3. Panel plot
 
-````{r}
+
+``` r
 # Convert date and create weekday/weekend factor
 data_imputed$date <- as.Date(data_imputed$date)
 data_imputed$day_type <- ifelse(weekdays(data_imputed$date) %in% c("Saturday", "Sunday"),
@@ -126,6 +189,26 @@ data_imputed$day_type <- as.factor(data_imputed$day_type)
 
 # Calculate average steps per interval by day type
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+``` r
 avg_steps <- data_imputed %>%
   group_by(interval, day_type) %>%
   summarise(steps = mean(steps), .groups = 'drop')
@@ -138,4 +221,6 @@ xyplot(steps ~ interval | day_type, data = avg_steps,
        xlab = "5-minute Interval",
        ylab = "Average Number of Steps",
        main = "Average Daily Activity Pattern: Weekday vs Weekend")
-````
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
